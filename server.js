@@ -17,6 +17,6 @@ app.use(cors());
 
 // listener
 app.listen(port, () => {
-  logger.info("Mode : ", process.env.NODE_ENV);
-  logger.info("SERVER LISTENING ON PORT : ", port);
+  logger.info(`Mode : ${process.env.NODE_ENV}`);
+  logger.info(`SERVER LISTENING ON PORT : ${port}`);
 });
