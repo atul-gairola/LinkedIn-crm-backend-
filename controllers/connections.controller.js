@@ -94,8 +94,63 @@ exports.getNextToUpdate = async (req, res) => {
     .sort({ connectedAt: -1 })
     .limit(1);
 
-  res.status(200).json({ next: results.length[0] });
+  res.status(200).json({ next: results[0] });
 };
 
 // -----
 
+exports.updateOneController = async (req, res) => {
+  const { entityUrn } = req.params;
+  const {
+    location,
+    country,
+    industryName,
+    summary,
+    firstName,
+    lastName,
+    company,
+    companyTitle,
+    profileId,
+    address,
+    emailAddress,
+    phoneNumbers,
+  } = req.body;
+  const { liuser } = req.headers;
+
+  const updatedConnection = await ConnectionModel.findOneAndUpdate(
+    { entityUrn, connectionOf: liuser },
+    {
+      location,
+      country,
+      industryName,
+      summary,
+      company,
+      companyTitle,
+      profileId,
+      contact: {
+        address,
+        emailAddress,
+        phoneNumbers,
+      },
+      retrieved: true,
+    },
+    { new: true }
+  );
+
+  const updatedUser = await LinkedInUserModel.findByIdAndUpdate(
+    liuser,
+    { $inc: { retrievedConnections: 1 } },
+    { new: true }
+  );
+
+  res.status(201).json({
+    meta: {
+      retrieved: updatedUser.retrievedConnections,
+      total: updatedUser.totalConnections,
+      left: updatedUser.totalConnections - updatedUser.retrievedConnections,
+    },
+    data: {
+      update: updatedConnection,
+    },
+  });
+};

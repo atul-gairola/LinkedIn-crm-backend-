@@ -17,8 +17,8 @@ const linkedInUserSchema = new Schema(
     industryName: String,
     summary: String,
     connections: [{ entityUrn: String }],
-    totalConnections: Number,
-    retrievedConnections: Number,
+    totalConnections: { type: Number, default: 0 },
+    retrievedConnections: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
