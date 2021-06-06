@@ -32,16 +32,6 @@ exports.initializeController = async (req, res) => {
 
   for (contact of contacts) {
     if (contact) {
-      const savedConnection = await ConnectionModel.findOne({
-        connectionOf: newLinkedInUser._id,
-        entityUrn: contact.entityUrn,
-      });
-
-      if (savedConnection) {
-        console.log("Connection saved");
-        continue;
-      }
-
       const newConnection = await ConnectionModel.create({
         ...contact,
         connectionOf: newLinkedInUser._id,
@@ -77,16 +67,22 @@ exports.getConnectionsController = async (req, res) => {
 
   // search
   let find = { connectionOf: liuser };
-  let findMeta = {};
 
   if (searchIn && search) {
     find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
   }
 
-  const results = await ConnectionModel.find(find, findMeta)
+  const totalCount = (await ConnectionModel.find(find)).length;
+
+  const results = await ConnectionModel.find(find)
     .sort(sort)
     .skip(Number(start))
     .limit(Number(count));
 
-  res.status(200).json({ length: results.length, results });
+  res.status(200).json({
+    data: { count: results.length, connections: results },
+    meta: { totalResults: totalCount, start: start, limit: count },
+  });
 };
+
+exports.getNextToUpdate = async (req, res) => {};
