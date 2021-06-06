@@ -4,9 +4,10 @@ const { Schema } = mongoose;
 
 const linkedInUserSchema = new Schema(
   {
-    entityUrn: String,
+    entityUrn: { type: String, unique: true },
     firstName: String,
     lastName: String,
+    fullName: String,
     headline: String,
     publicIdentifier: String,
     profilePicture: String,

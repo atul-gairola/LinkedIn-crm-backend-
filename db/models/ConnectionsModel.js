@@ -7,10 +7,12 @@ const connectionSchema = new Schema(
     connectionOf: {
       type: Schema.Types.ObjectId,
       ref: "LinkedInUser",
+      index: true,
     },
-    entityUrn: String,
+    entityUrn: { type: String, index: true },
     firstName: String,
     lastName: String,
+    fullName: { type: String, text: true },
     headline: String,
     publicIdentifier: String,
     connectedAt: Number,
