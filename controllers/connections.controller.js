@@ -72,7 +72,7 @@ exports.getConnectionsController = async (req, res) => {
     find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
   }
 
-  const totalCount = (await ConnectionModel.find(find)).length;
+  const totalCount = await ConnectionModel.count(find);
 
   const results = await ConnectionModel.find(find)
     .sort(sort)
@@ -85,4 +85,17 @@ exports.getConnectionsController = async (req, res) => {
   });
 };
 
-exports.getNextToUpdate = async (req, res) => {};
+// -----
+
+exports.getNextToUpdate = async (req, res) => {
+  const results = await ConnectionModel.find({
+    $or: [{ retrieved: null }, { retrieved: false }],
+  })
+    .sort({ connectedAt: -1 })
+    .limit(1);
+
+  res.status(200).json({ next: results.length[0] });
+};
+
+// -----
+
