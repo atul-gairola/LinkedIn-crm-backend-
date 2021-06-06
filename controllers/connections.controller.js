@@ -32,13 +32,23 @@ exports.initializeController = async (req, res) => {
 
   for (contact of contacts) {
     if (contact) {
-      const savedConnection = await ConnectionModel.create({
+      const savedConnection = await ConnectionModel.findOne({
+        connectionOf: newLinkedInUser._id,
+        entityUrn: contact.entityUrn,
+      });
+
+      if (savedConnection) {
+        console.log("Connection saved");
+        continue;
+      }
+
+      const newConnection = await ConnectionModel.create({
         ...contact,
         connectionOf: newLinkedInUser._id,
         fullName: contact.firstName + " " + contact.lastName,
       });
 
-      logger.info(`Saved Connection : ${savedConnection.firstName}`);
+      logger.info(`Saved Connection : ${newConnection.firstName}`);
     }
   }
 
@@ -50,19 +60,7 @@ exports.initializeController = async (req, res) => {
 // -----
 
 exports.getConnectionsController = async (req, res) => {
-  const {
-    start,
-    count,
-    sortBy,
-    sortOrder,
-    searchIn,
-    search,
-    searchHeadline,
-    searchName,
-    searchCompany,
-    searchCountry,
-    searchLocation,
-  } = req.query;
+  const { start, count, sortBy, sortOrder, searchIn, search } = req.query;
 
   const { liuser } = req.headers;
 
@@ -81,21 +79,9 @@ exports.getConnectionsController = async (req, res) => {
   let find = { connectionOf: liuser };
   let findMeta = {};
 
-//   if (searchIn && search) {
-//     if (searchIn === "fullName") {
-//       find = { ...find, $text: { $search: `"${search}"` } };
-//       findMeta = { score: { $meta: "textScore" } };
-//       sort = { ...sort, score: { $meta: "textScore" } };
-//     }
-//   }
-
-    if (searchIn && search) {
-      find = { ...find, [searchIn]: {$regex: `${search}`, $options: "i"}};
-    }
-
-  console.log(find);
-  console.log(findMeta);
-  console.log(sort);
+  if (searchIn && search) {
+    find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
+  }
 
   const results = await ConnectionModel.find(find, findMeta)
     .sort(sort)
