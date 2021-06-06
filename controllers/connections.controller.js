@@ -27,7 +27,7 @@ exports.initializeController = async (req, res) => {
   const newLinkedInUser = await LinkedInUserModel.create({
     ...userDetails,
     totalConnections: contacts.length,
-    fullName: userDetails.firstName + userDetails.lastName,
+    fullName: userDetails.firstName + " " + userDetails.lastName,
   });
 
   for (contact of contacts) {
@@ -35,7 +35,7 @@ exports.initializeController = async (req, res) => {
       const savedConnection = await ConnectionModel.create({
         ...contact,
         connectionOf: newLinkedInUser._id,
-        fullName: contact.firstName + contact.lastName,
+        fullName: contact.firstName + " " + contact.lastName,
       });
 
       logger.info(`Saved Connection : ${savedConnection.firstName}`);
@@ -79,12 +79,25 @@ exports.getConnectionsController = async (req, res) => {
 
   // search
   let find = { connectionOf: liuser };
+  let findMeta = {};
 
-  //   if (searchIn && search) {
-  // find = {...find, {$text: {$search}}}
-  // }
+//   if (searchIn && search) {
+//     if (searchIn === "fullName") {
+//       find = { ...find, $text: { $search: `"${search}"` } };
+//       findMeta = { score: { $meta: "textScore" } };
+//       sort = { ...sort, score: { $meta: "textScore" } };
+//     }
+//   }
 
-  const results = await ConnectionModel.find({ connectionOf: liuser })
+    if (searchIn && search) {
+      find = { ...find, [searchIn]: {$regex: `${search}`, $options: "i"}};
+    }
+
+  console.log(find);
+  console.log(findMeta);
+  console.log(sort);
+
+  const results = await ConnectionModel.find(find, findMeta)
     .sort(sort)
     .skip(Number(start))
     .limit(Number(count));
