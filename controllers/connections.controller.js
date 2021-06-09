@@ -11,6 +11,10 @@ const logger = generateLogger(getCurrentFilename(__filename));
  * @param {*} res - Response object
  */
 
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 exports.initializeController = async (req, res) => {
   const { contacts, userDetails } = req.body;
 
@@ -19,7 +23,9 @@ exports.initializeController = async (req, res) => {
   });
 
   if (linkedInUser) {
-    res.status(201).json({ message: "User Exists", new: false, linkedInUser });
+    res
+      .status(201)
+      .json({ message: "User Exists", new: false, user: linkedInUser });
     return;
   }
 
@@ -27,7 +33,10 @@ exports.initializeController = async (req, res) => {
   const newLinkedInUser = await LinkedInUserModel.create({
     ...userDetails,
     totalConnections: contacts.length,
-    fullName: userDetails.firstName + " " + userDetails.lastName,
+    fullName:
+      capitalizeFirstLetter(userDetails.firstName) +
+      " " +
+      capitalizeFirstLetter(userDetails.lastName),
   });
 
   for (contact of contacts) {
@@ -42,9 +51,9 @@ exports.initializeController = async (req, res) => {
     }
   }
 
-  //   console.log("New LinkedIn User");
-
-  res.status(201).json({ message: "Data recieved", newLinkedInUser });
+  res
+    .status(201)
+    .json({ message: "Data recieved", user: newLinkedInUser, new: true });
 };
 
 // -----
@@ -69,8 +78,15 @@ exports.getConnectionsController = async (req, res) => {
   let find = { connectionOf: liuser };
 
   if (searchIn && search) {
-    find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
+    if (Array.isArray(searchIn) && Array.isArray(search)) {
+      searchIn.forEach((cur, i) => {
+        find[cur] = { $regex: search[i], $options: "i" };
+      });
+    } else {
+      find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
+    }
   }
+
 
   const totalCount = await ConnectionModel.count(find);
 
@@ -100,57 +116,95 @@ exports.getNextToUpdate = async (req, res) => {
 // -----
 
 exports.updateOneController = async (req, res) => {
-  const { entityUrn } = req.params;
-  const {
-    location,
-    country,
-    industryName,
-    summary,
-    firstName,
-    lastName,
-    company,
-    companyTitle,
-    profileId,
-    address,
-    emailAddress,
-    phoneNumbers,
-  } = req.body;
-  const { liuser } = req.headers;
-
-  const updatedConnection = await ConnectionModel.findOneAndUpdate(
-    { entityUrn, connectionOf: liuser },
-    {
+  try {
+    const { entityUrn } = req.params;
+    const {
       location,
       country,
       industryName,
       summary,
+      firstName,
+      lastName,
       company,
       companyTitle,
       profileId,
-      contact: {
-        address,
-        emailAddress,
-        phoneNumbers,
+      address,
+      emailAddress,
+      phoneNumbers,
+    } = req.body;
+    const { liuser } = req.headers;
+
+    const connection = await ConnectionModel.findOne({
+      entityUrn,
+      connectionOf: liuser,
+    });
+
+    const updatedConnection = await ConnectionModel.findOneAndUpdate(
+      { entityUrn, connectionOf: liuser },
+      {
+        location,
+        country,
+        industryName,
+        summary,
+        company,
+        companyTitle,
+        profileId,
+        contact: {
+          address,
+          emailAddress,
+          phoneNumbers,
+        },
+        retrieved: true,
       },
-      retrieved: true,
-    },
-    { new: true }
-  );
+      { new: true }
+    );
 
-  const updatedUser = await LinkedInUserModel.findByIdAndUpdate(
-    liuser,
-    { $inc: { retrievedConnections: 1 } },
-    { new: true }
-  );
+    const updatedUser = await LinkedInUserModel.findByIdAndUpdate(
+      liuser,
+      connection.retrieved ? {} : { $inc: { retrievedConnections: 1 } },
+      { new: true }
+    );
 
-  res.status(201).json({
-    meta: {
-      retrieved: updatedUser.retrievedConnections,
-      total: updatedUser.totalConnections,
-      left: updatedUser.totalConnections - updatedUser.retrievedConnections,
-    },
-    data: {
-      update: updatedConnection,
+    res.status(201).json({
+      meta: {
+        retrieved: updatedUser.retrievedConnections,
+        total: updatedUser.totalConnections,
+        left: updatedUser.totalConnections - updatedUser.retrievedConnections,
+      },
+      data: {
+        update: updatedConnection,
+      },
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// -----
+
+exports.deleteOneController = async (req, res) => {
+  const { entityUrn } = req.params;
+  const { liuser } = req.headers;
+
+  const deletedConnection = await ConnectionModel.findOneAndDelete({
+    connectionOf: liuser,
+    entityUrn,
+  });
+
+  await LinkedInUserModel.findByIdAndUpdate(liuser, {
+    $inc: {
+      totalConnections: -1,
+      retrievedConnections: deletedConnection.retrieved ? -1 : 0,
     },
   });
+
+  res.status(200).json({ message: "Deleted successfully" });
+};
+
+// -----
+
+exports.synchronize = async (req, res) => {
+  const { contacts } = req.body;
+  const { liuser } = req.headers;
 };
