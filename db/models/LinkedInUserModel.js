@@ -19,6 +19,7 @@ const linkedInUserSchema = new Schema(
     connections: [{ entityUrn: String }],
     totalConnections: { type: Number, default: 0 },
     retrievedConnections: { type: Number, default: 0 },
+    lastSync: Number,
   },
   { timestamps: true }
 );

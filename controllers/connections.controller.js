@@ -16,101 +16,121 @@ function capitalizeFirstLetter(string) {
 }
 
 exports.initializeController = async (req, res) => {
-  const { contacts, userDetails } = req.body;
+  try {
+    const { contacts, userDetails } = req.body;
 
-  const linkedInUser = await LinkedInUserModel.findOne({
-    entityUrn: userDetails.entityUrn,
-  });
+    const linkedInUser = await LinkedInUserModel.findOne({
+      entityUrn: userDetails.entityUrn,
+    });
 
-  if (linkedInUser) {
+    if (linkedInUser) {
+      res
+        .status(201)
+        .json({ message: "User Exists", new: false, user: linkedInUser });
+      return;
+    }
+
+    // create user
+    const newLinkedInUser = await LinkedInUserModel.create({
+      ...userDetails,
+      totalConnections: contacts.length,
+      fullName:
+        capitalizeFirstLetter(userDetails.firstName) +
+        " " +
+        capitalizeFirstLetter(userDetails.lastName),
+    });
+
+    for (contact of contacts) {
+      if (contact) {
+        const newConnection = await ConnectionModel.create({
+          ...contact,
+          connectionOf: newLinkedInUser._id,
+          fullName: contact.firstName + " " + contact.lastName,
+        });
+
+        logger.info(`Saved Connection : ${newConnection.firstName}`);
+      }
+    }
+
     res
       .status(201)
-      .json({ message: "User Exists", new: false, user: linkedInUser });
-    return;
+      .json({ message: "Data recieved", user: newLinkedInUser, new: true });
+  } catch (e) {
+    logger.error(`Error occured while Initializing : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime." });
   }
-
-  // create user
-  const newLinkedInUser = await LinkedInUserModel.create({
-    ...userDetails,
-    totalConnections: contacts.length,
-    fullName:
-      capitalizeFirstLetter(userDetails.firstName) +
-      " " +
-      capitalizeFirstLetter(userDetails.lastName),
-  });
-
-  for (contact of contacts) {
-    if (contact) {
-      const newConnection = await ConnectionModel.create({
-        ...contact,
-        connectionOf: newLinkedInUser._id,
-        fullName: contact.firstName + " " + contact.lastName,
-      });
-
-      logger.info(`Saved Connection : ${newConnection.firstName}`);
-    }
-  }
-
-  res
-    .status(201)
-    .json({ message: "Data recieved", user: newLinkedInUser, new: true });
 };
 
 // -----
 
 exports.getConnectionsController = async (req, res) => {
-  const { start, count, sortBy, sortOrder, searchIn, search } = req.query;
+  try {
+    const { start, count, sortBy, sortOrder, searchIn, search } = req.query;
 
-  const { liuser } = req.headers;
+    const { liuser } = req.headers;
 
-  // Sorting
-  let sort = {
-    connectedAt: -1,
-  };
-
-  if (sortBy && sortOrder) {
-    sort = {
-      [sortBy]: Number(sortOrder),
+    // Sorting
+    let sort = {
+      connectedAt: -1,
     };
-  }
 
-  // search
-  let find = { connectionOf: liuser };
-
-  if (searchIn && search) {
-    if (Array.isArray(searchIn) && Array.isArray(search)) {
-      searchIn.forEach((cur, i) => {
-        find[cur] = { $regex: search[i], $options: "i" };
-      });
-    } else {
-      find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
+    if (sortBy && sortOrder) {
+      sort = {
+        [sortBy]: Number(sortOrder),
+      };
     }
+
+    // search
+    let find = { connectionOf: liuser };
+
+    if (searchIn && search) {
+      if (Array.isArray(searchIn) && Array.isArray(search)) {
+        searchIn.forEach((cur, i) => {
+          find[cur] = { $regex: search[i], $options: "i" };
+        });
+      } else {
+        find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
+      }
+    }
+
+    const totalCount = await ConnectionModel.count(find);
+
+    const results = await ConnectionModel.find(find)
+      .sort(sort)
+      .skip(Number(start))
+      .limit(Number(count));
+
+    res.status(200).json({
+      data: { count: results.length, connections: results },
+      meta: { totalResults: totalCount, start: start, limit: count },
+    });
+  } catch (e) {
+    logger.error(`Error while getting connections : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime." });
   }
-
-
-  const totalCount = await ConnectionModel.count(find);
-
-  const results = await ConnectionModel.find(find)
-    .sort(sort)
-    .skip(Number(start))
-    .limit(Number(count));
-
-  res.status(200).json({
-    data: { count: results.length, connections: results },
-    meta: { totalResults: totalCount, start: start, limit: count },
-  });
 };
 
 // -----
 
 exports.getNextToUpdate = async (req, res) => {
-  const results = await ConnectionModel.find({
-    $or: [{ retrieved: null }, { retrieved: false }],
-  })
-    .sort({ connectedAt: -1 })
-    .limit(1);
+  try {
+    const results = await ConnectionModel.find({
+      $or: [{ retrieved: null }, { retrieved: false }],
+    })
+      .sort({ connectedAt: -1 })
+      .limit(1);
 
-  res.status(200).json({ next: results[0] });
+    res.status(200).json({ next: results[0] });
+  } catch (e) {
+    logger.error(`Error while getting nextToUpdate : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime." });
+  }
 };
 
 // -----
@@ -133,6 +153,9 @@ exports.updateOneController = async (req, res) => {
       phoneNumbers,
     } = req.body;
     const { liuser } = req.headers;
+
+    console.log("Body --------");
+    console.log(req.body);
 
     const connection = await ConnectionModel.findOne({
       entityUrn,
@@ -165,6 +188,8 @@ exports.updateOneController = async (req, res) => {
       { new: true }
     );
 
+    console.log(updatedConnection);
+
     res.status(201).json({
       meta: {
         retrieved: updatedUser.retrievedConnections,
@@ -176,30 +201,39 @@ exports.updateOneController = async (req, res) => {
       },
     });
   } catch (e) {
-    console.log(e);
-    res.status(500).json({ message: "Internal server error" });
+    logger.error(`Error in updating one connection : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime." });
   }
 };
 
 // -----
 
 exports.deleteOneController = async (req, res) => {
-  const { entityUrn } = req.params;
-  const { liuser } = req.headers;
+  try {
+    const { entityUrn } = req.params;
+    const { liuser } = req.headers;
 
-  const deletedConnection = await ConnectionModel.findOneAndDelete({
-    connectionOf: liuser,
-    entityUrn,
-  });
+    const deletedConnection = await ConnectionModel.findOneAndDelete({
+      connectionOf: liuser,
+      entityUrn,
+    });
 
-  await LinkedInUserModel.findByIdAndUpdate(liuser, {
-    $inc: {
-      totalConnections: -1,
-      retrievedConnections: deletedConnection.retrieved ? -1 : 0,
-    },
-  });
+    await LinkedInUserModel.findByIdAndUpdate(liuser, {
+      $inc: {
+        totalConnections: -1,
+        retrievedConnections: deletedConnection.retrieved ? -1 : 0,
+      },
+    });
 
-  res.status(200).json({ message: "Deleted successfully" });
+    res.status(200).json({ message: "Deleted successfully" });
+  } catch (e) {
+    logger.error(`Error in deleting one connection : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime" });
+  }
 };
 
 // -----
