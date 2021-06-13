@@ -86,17 +86,26 @@ exports.getConnectionsController = async (req, res) => {
     // search
     let find = { connectionOf: liuser };
 
-    if (searchIn && search) {
-      if (Array.isArray(searchIn) && Array.isArray(search)) {
-        searchIn.forEach((cur, i) => {
-          find[cur] = { $regex: search[i], $options: "i" };
-        });
-      } else {
-        find = { ...find, [searchIn]: { $regex: `${search}`, $options: "i" } };
-      }
+    if (search) {
+      find = {
+        ...find,
+        $or: [
+          { fullName: { $regex: `${search}`, $options: "i" } },
+          { headline: { $regex: `${search}`, $options: "i" } },
+          { location: { $regex: `${search}`, $options: "i" } },
+          { company: { $regex: `${search}`, $options: "i" } },
+          { companyTitle: { $regex: `${search}`, $options: "i" } },
+          { "contact.emailAddress": { $regex: `${search}`, $options: "i" } },
+          { "contact.address": { $regex: `${search}`, $options: "i" } },
+          { industryName: { $regex: `${search}`, $options: "i" } },
+          { country: { $regex: `${search}`, $options: "i" } },
+        ],
+      };
     }
 
-    const totalCount = await ConnectionModel.count(find);
+    console.log(search);
+
+    const totalCount = await ConnectionModel.countDocuments(find);
 
     const results = await ConnectionModel.find(find)
       .sort(sort)
