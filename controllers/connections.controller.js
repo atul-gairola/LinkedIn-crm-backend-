@@ -38,6 +38,7 @@ exports.initializeController = async (req, res) => {
         capitalizeFirstLetter(userDetails.firstName) +
         " " +
         capitalizeFirstLetter(userDetails.lastName),
+      lastSync: Date.now(),
     });
 
     for (contact of contacts) {
