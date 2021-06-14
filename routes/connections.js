@@ -5,9 +5,12 @@ const {
   getConnectionsController,
   getNextToUpdate,
   updateOneController,
+  addConnectionController,
 } = require("../controllers/connections.controller");
 
 router.post("/init", initializeController);
+
+router.post("/", addConnectionController);
 
 router.get("/", getConnectionsController);
 

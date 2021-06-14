@@ -26,20 +26,21 @@ exports.initializeController = async (req, res) => {
     if (linkedInUser) {
       res
         .status(201)
-        .json({ message: "User Exists", new: false, user: linkedInUser });
+        .json({ message: "User Exists", newInit: false, user: linkedInUser });
       return;
     }
 
     // create user
     const newLinkedInUser = await LinkedInUserModel.create({
       ...userDetails,
-      totalConnections: contacts.length,
       fullName:
         capitalizeFirstLetter(userDetails.firstName) +
         " " +
         capitalizeFirstLetter(userDetails.lastName),
       lastSync: Date.now(),
     });
+
+    let updateLinkedInUser;
 
     for (contact of contacts) {
       if (contact) {
@@ -49,13 +50,23 @@ exports.initializeController = async (req, res) => {
           fullName: contact.firstName + " " + contact.lastName,
         });
 
+        updatedLinkedInUser = await LinkedInUserModel.findByIdAndUpdate(
+          newLinkedInUser._id,
+          {
+            $inc: { collectedConnections: 1 },
+          },
+          { new: true }
+        );
+
         logger.info(`Saved Connection : ${newConnection.firstName}`);
       }
     }
 
-    res
-      .status(201)
-      .json({ message: "Data recieved", user: newLinkedInUser, new: true });
+    res.status(201).json({
+      message: "Data recieved",
+      user: updatedLinkedInUser,
+      newInit: true,
+    });
   } catch (e) {
     logger.error(`Error occured while Initializing : ${e}`);
     res
@@ -66,9 +77,66 @@ exports.initializeController = async (req, res) => {
 
 // -----
 
+exports.addConnectionController = async (req, res) => {
+  try {
+    const { liuser } = req.headers;
+    const { connection } = req.body;
+
+    // check if connection exists
+    const connectionExists = await ConnectionModel.findOne({
+      connectionOf: liuser,
+      entityUrn: connection.entityUrn,
+    });
+
+    if (connectionExists) {
+      logger.info(`Connection already exists`);
+      // if connection exists
+      return res.status(409).json({
+        message: "Connection exists",
+      });
+    }
+
+    // create new connection
+    const newConnection = await ConnectionModel.create({
+      ...connection,
+      connectionOf: liuser,
+      fullName: connection.firstName + " " + connection.lastName,
+    });
+
+    // update linkedInUser
+    const updatedUser = await LinkedInUserModel.findByIdAndUpdate(
+      liuser,
+      {
+        $inc: { collectedConnections: 1 },
+      },
+      { new: true }
+    );
+
+    logger.info(
+      `Connection (${newConnection._id}) saved to liuser - ${updatedUser._id}`
+    );
+
+    return res.status(201).json({
+      message: "Connection saved",
+      savedConnection: newConnection,
+      meta: {
+        collectedConnections: updatedUser.collectedConnections,
+        totalConnections: updatedUser.totalConnections,
+        retrievedConnections: updatedUser.retrievedConnections,
+      },
+    });
+
+  } catch (e) {
+    logger.error(`Error in adding connection : ${e}`);
+    return res
+      .status(500)
+      .json({ message: "Internal server error.Please try after sometime" });
+  }
+};
+
 exports.getConnectionsController = async (req, res) => {
   try {
-    const { start, count, sortBy, sortOrder, searchIn, search } = req.query;
+    const { start, count, sortBy, sortOrder, search } = req.query;
 
     const { liuser } = req.headers;
 
@@ -102,8 +170,6 @@ exports.getConnectionsController = async (req, res) => {
         ],
       };
     }
-
-    console.log(search);
 
     const totalCount = await ConnectionModel.countDocuments(find);
 
@@ -165,7 +231,6 @@ exports.updateOneController = async (req, res) => {
     const { liuser } = req.headers;
 
     console.log("Body --------");
-    console.log(req.body);
 
     const connection = await ConnectionModel.findOne({
       entityUrn,
