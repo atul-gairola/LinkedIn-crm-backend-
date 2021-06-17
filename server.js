@@ -21,7 +21,7 @@ app.use(express.json({ limit: "50mb" }));
 
 // routes
 app.use("/connections", connectionsRoutes);
-app.user("/user", userRoutes);
+app.use("/user", userRoutes);
 
 // listener
 app.listen(port, () => {
