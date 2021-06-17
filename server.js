@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 
 const connectionsRoutes = require("./routes/connections");
+const userRoutes = require("./routes/user");
 
 // logger
 const { generateLogger, getCurrentFilename } = require("./logger");
@@ -20,6 +21,7 @@ app.use(express.json({ limit: "50mb" }));
 
 // routes
 app.use("/connections", connectionsRoutes);
+app.user("/user", userRoutes);
 
 // listener
 app.listen(port, () => {

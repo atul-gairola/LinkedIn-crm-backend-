@@ -40,3 +40,5 @@ connections.controller.js :: [[31merror[39m] [2021-06-14 16:23:12] :: Error in
 connections.controller.js :: [[31merror[39m] [2021-06-14 16:23:12] :: Error in adding connection : TypeError: Cannot read property '_id' of null
 connections.controller.js :: [[31merror[39m] [2021-06-14 16:23:14] :: Error in adding connection : TypeError: Cannot read property '_id' of null
 connections.controller.js :: [[31merror[39m] [2021-06-14 16:23:15] :: Error in adding connection : TypeError: Cannot read property '_id' of null
+mongoose.js :: [[31merror[39m] [2021-06-17 18:35:41] :: Error connecting to the DB
+ querySrv ECONNREFUSED _mongodb._tcp.cluster0.9attb.mongodb.net
