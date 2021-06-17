@@ -12,7 +12,12 @@ const userSchema = new Schema(
         ref: "linkedInUsers",
       },
     ],
-    tags: [String],
+    tags: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "tags",
+      },
+    ],
   },
   { timestamps: true }
 );

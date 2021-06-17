@@ -30,6 +30,12 @@ const connectionSchema = new Schema(
     company: String,
     companyTitle: String,
     retrieved: Boolean,
+    tags: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "tags",
+      },
+    ],
   },
   { timestamps: true }
 );
