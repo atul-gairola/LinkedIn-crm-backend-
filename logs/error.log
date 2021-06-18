@@ -63,3 +63,5 @@ user.controller.js :: [[31merror[39m] [2021-06-18 22:24:36] :: Error while get
 user.controller.js :: [[31merror[39m] [2021-06-18 22:24:42] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
 user.controller.js :: [[31merror[39m] [2021-06-18 22:27:51] :: Error while deleting tag : CastError: Cast to ObjectId failed for value "remove" (type string) at path "_id" for model "tags"
 user.controller.js :: [[31merror[39m] [2021-06-18 22:30:21] :: Error while updating tag : ReferenceError: tag is not defined
+user.controller.js :: [[31merror[39m] [2021-06-18 22:37:27] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 22:37:44] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
