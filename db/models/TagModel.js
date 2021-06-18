@@ -5,12 +5,13 @@ const { Schema } = mongoose;
 const tagSchema = new Schema(
   {
     name: String,
-    color: String,
+    colorName: String,
+    colorHex: String,
     description: String,
     user: {
-        type: Schema.Types.ObjectId,
-        ref: "user",
-    }
+      type: Schema.Types.ObjectId,
+      ref: "user",
+    },
   },
   {
     timestamps: true,

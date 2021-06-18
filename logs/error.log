@@ -42,3 +42,24 @@ connections.controller.js :: [[31merror[39m] [2021-06-14 16:23:14] :: Error in
 connections.controller.js :: [[31merror[39m] [2021-06-14 16:23:15] :: Error in adding connection : TypeError: Cannot read property '_id' of null
 mongoose.js :: [[31merror[39m] [2021-06-17 18:35:41] :: Error connecting to the DB
  querySrv ECONNREFUSED _mongodb._tcp.cluster0.9attb.mongodb.net
+user.controller.js :: [[31merror[39m] [2021-06-18 12:39:04] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 12:47:16] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 12:56:17] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 13:08:27] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 13:11:09] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 13:34:59] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 13:53:53] :: Error while creating tag : ReferenceError: color is not defined
+user.controller.js :: [[31merror[39m] [2021-06-18 14:08:03] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 14:50:06] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 15:03:49] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 15:10:50] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 15:23:48] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 15:34:07] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 15:57:45] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 16:07:06] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 17:06:28] :: Error while updating tag : CastError: Cast to ObjectId failed for value "undefined" (type string) at path "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 22:21:47] :: Error while deleting tag : CastError: Cast to ObjectId failed for value "remove" (type string) at path "_id" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 22:24:36] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 22:24:42] :: Error while getting tags : CastError: Cast to ObjectId failed for value "null" (type string) at path "user" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 22:27:51] :: Error while deleting tag : CastError: Cast to ObjectId failed for value "remove" (type string) at path "_id" for model "tags"
+user.controller.js :: [[31merror[39m] [2021-06-18 22:30:21] :: Error while updating tag : ReferenceError: tag is not defined

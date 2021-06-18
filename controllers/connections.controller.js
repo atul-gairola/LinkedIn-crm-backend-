@@ -125,7 +125,6 @@ exports.addConnectionController = async (req, res) => {
         retrievedConnections: updatedUser.retrievedConnections,
       },
     });
-
   } catch (e) {
     logger.error(`Error in adding connection : ${e}`);
     return res
@@ -176,7 +175,8 @@ exports.getConnectionsController = async (req, res) => {
     const results = await ConnectionModel.find(find)
       .sort(sort)
       .skip(Number(start))
-      .limit(Number(count));
+      .limit(Number(count))
+      .populate("tags");
 
     res.status(200).json({
       data: { count: results.length, connections: results },
@@ -255,13 +255,13 @@ exports.updateOneController = async (req, res) => {
         retrieved: true,
       },
       { new: true }
-    );
+    ).populate("tags").exec();
 
     const updatedUser = await LinkedInUserModel.findByIdAndUpdate(
       liuser,
       connection.retrieved ? {} : { $inc: { retrievedConnections: 1 } },
       { new: true }
-    );
+    )
 
     console.log(updatedConnection);
 

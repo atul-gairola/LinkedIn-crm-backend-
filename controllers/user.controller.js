@@ -1,6 +1,6 @@
 const UserModel = require("../db/models/UserModel");
-const LinkedInUserModel = require("../db/models/LinkedInUserModel");
 const TagModel = require("../db/models/TagModel");
+const ConnectionModel = require("../db/models/ConnectionsModel");
 
 // logger
 const { generateLogger, getCurrentFilename } = require("../logger");
@@ -41,17 +41,19 @@ exports.loginController = async (req, res) => {
 
 exports.createTagController = async (req, res) => {
   try {
-    const { name, color } = req.body;
+    const { name, colorHex, colorName, description } = req.body;
     const { userId } = req.params;
 
-    if (!name || !color) {
+    if (!name || !colorName) {
       return res.status(400).json({ message: "Incorrect data" });
     }
 
     // create tag
     const newTag = await TagModel.create({
       name,
-      color,
+      colorHex,
+      colorName,
+      description,
       user: userId,
     });
 
@@ -100,6 +102,22 @@ exports.deleteTag = async (req, res) => {
 
     const deletedTag = await TagModel.findByIdAndDelete(tagId);
 
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        $pull: { tags: tagId },
+      },
+      { new: true }
+    );
+
+    const updatedConnections = await ConnectionModel.updateMany(
+      { tags: tagId },
+      {
+        $pull: { tags: tagId },
+      },
+      { new: true }
+    );
+
     res.status(200).json({ deletedTag });
   } catch (e) {
     logger.error(`Error while deleting tag : ${e}`);
@@ -126,6 +144,48 @@ exports.updateTag = async (req, res) => {
     );
 
     res.status(200).json({ updatedTag });
+  } catch (e) {
+    logger.error(`Error while updating tag : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime" });
+  }
+};
+
+exports.applyTag = async (req, res) => {
+  try {
+    const { connectionId, tagId } = req.params;
+
+    const updatedConnection = await ConnectionModel.findByIdAndUpdate(
+      connectionId,
+      {
+        $push: {
+          tags: tagId,
+        },
+      }
+    );
+    res.status(200).json({ updatedConnection });
+  } catch (e) {
+    logger.error(`Error while updating tag : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime" });
+  }
+};
+
+exports.removeTag = async (req, res) => {
+  try {
+    const { userId, tagId, connectionId } = req.params;
+
+    const updatedConnection = await ConnectionModel.findByIdAndUpdate(
+      connectionId,
+      {
+        $pull: {
+          tags: tagId,
+        },
+      }
+    );
+    res.status(200).json({ updatedConnection });
   } catch (e) {
     logger.error(`Error while updating tag : ${e}`);
     res
