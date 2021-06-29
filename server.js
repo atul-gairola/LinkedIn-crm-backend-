@@ -1,10 +1,12 @@
 require("dotenv").config();
 require("./db/mongoose");
 const express = require("express");
+const queue = require("express-queue");
 const cors = require("cors");
 
 const connectionsRoutes = require("./routes/connections");
 const userRoutes = require("./routes/user");
+const liUserRoutes = require("./routes/liuser");
 
 // logger
 const { generateLogger, getCurrentFilename } = require("./logger");
@@ -17,11 +19,13 @@ const port = process.env.PORT || 8000;
 // middlewears
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
+app.use(queue({ activeLimit: 2, queuedLimit: -1 }));
 // app.use(express.urlencoded({ limit: "50mb" }));
 
 // routes
 app.use("/connections", connectionsRoutes);
 app.use("/user", userRoutes);
+app.use("/liuser", liUserRoutes);
 
 // listener
 app.listen(port, () => {

@@ -19,6 +19,8 @@ exports.initializeController = async (req, res) => {
   try {
     const { contacts, userDetails } = req.body;
 
+    console.log("Contacts length: ", contacts.length);
+
     const linkedInUser = await LinkedInUserModel.findOne({
       entityUrn: userDetails.entityUrn,
     });
@@ -59,6 +61,8 @@ exports.initializeController = async (req, res) => {
         );
 
         logger.info(`Saved Connection : ${newConnection.firstName}`);
+      }else{
+        logger.info(`Contact does not exist : ${contact}`)
       }
     }
 
@@ -89,7 +93,7 @@ exports.addConnectionController = async (req, res) => {
     });
 
     if (connectionExists) {
-      logger.info(`Connection already exists`);
+      logger.info(`Connection already exists : ${connectionExists._id}`);
       // if connection exists
       return res.status(409).json({
         message: "Connection exists",
@@ -255,13 +259,15 @@ exports.updateOneController = async (req, res) => {
         retrieved: true,
       },
       { new: true }
-    ).populate("tags").exec();
+    )
+      .populate("tags")
+      .exec();
 
     const updatedUser = await LinkedInUserModel.findByIdAndUpdate(
       liuser,
       connection.retrieved ? {} : { $inc: { retrievedConnections: 1 } },
       { new: true }
-    )
+    );
 
     console.log(updatedConnection);
 
