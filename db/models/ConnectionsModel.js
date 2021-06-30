@@ -6,7 +6,7 @@ const connectionSchema = new Schema(
   {
     connectionOf: {
       type: Schema.Types.ObjectId,
-      ref: "LinkedInUser",
+      ref: "linkedInUsers",
       index: true,
     },
     entityUrn: { type: String, index: true },

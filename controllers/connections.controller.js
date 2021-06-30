@@ -61,8 +61,8 @@ exports.initializeController = async (req, res) => {
         );
 
         logger.info(`Saved Connection : ${newConnection.firstName}`);
-      }else{
-        logger.info(`Contact does not exist : ${contact}`)
+      } else {
+        logger.info(`Contact does not exist : ${contact}`);
       }
     }
 
@@ -184,6 +184,75 @@ exports.getConnectionsController = async (req, res) => {
 
     res.status(200).json({
       data: { count: results.length, connections: results },
+      meta: { totalResults: totalCount, start: start, limit: count },
+    });
+  } catch (e) {
+    logger.error(`Error while getting connections : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime." });
+  }
+};
+
+// -----
+
+exports.getAllConnections = async (req, res) => {
+  try {
+    const { start, count, sortBy, sortOrder, search } = req.query;
+
+    // Sorting
+    let sort = {
+      createdAt: -1,
+    };
+    let connectionOfSort = {};
+
+    console.log(sortOrder, sortBy);
+
+    if (sortBy && sortOrder) {
+        sort = {
+          [sortBy]: Number(sortOrder),
+        };
+    }
+
+    // search
+    let find = {};
+
+    if (search) {
+      find = {
+        ...find,
+        $or: [
+          { fullName: { $regex: `${search}`, $options: "i" } },
+          { company: { $regex: `${search}`, $options: "i" } },
+          { companyTitle: { $regex: `${search}`, $options: "i" } },
+          { "contact.emailAddress": { $regex: `${search}`, $options: "i" } },
+          { country: { $regex: `${search}`, $options: "i" } },
+        ],
+      };
+    }
+
+    const totalCount = await ConnectionModel.countDocuments(find);
+
+    let results;
+
+    const sortFunction = (firstEl, secondEl) => {
+      if (firstEl > secondEl) return 1;
+      else if (secondEl > firstEl) return -1;
+      else return 0;
+    };
+    if (sortBy === "connectionOf") {
+      results = (await ConnectionModel.find(find).populate("connectionOf"))
+        .sort(sortFunction)
+        .slice(Number(start), Number(count) + Number(start));
+    } else {
+      results = await ConnectionModel.find(find)
+        .sort(sort)
+        .skip(Number(start))
+        .limit(Number(count))
+        .populate("connectionOf");
+    }
+
+    res.status(200).json({
+      data: { resultsCount: results.length, connections: results },
       meta: { totalResults: totalCount, start: start, limit: count },
     });
   } catch (e) {
