@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const { generateLogger, getCurrentFilename } = require("../logger");
 const logger = generateLogger(getCurrentFilename(__filename));
 
-mongoose.connect(process.env.DB_CONNECTION_URI_DEV, {
+mongoose.connect(process.env.DB_CONNECTION_URI_PROD, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
