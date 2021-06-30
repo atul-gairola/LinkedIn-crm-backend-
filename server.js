@@ -7,6 +7,7 @@ const cors = require("cors");
 const connectionsRoutes = require("./routes/connections");
 const userRoutes = require("./routes/user");
 const liUserRoutes = require("./routes/liuser");
+const adminRoutes = require("./routes/admin");
 
 // logger
 const { generateLogger, getCurrentFilename } = require("./logger");
@@ -26,6 +27,7 @@ app.use(queue({ activeLimit: 2, queuedLimit: -1 }));
 app.use("/connections", connectionsRoutes);
 app.use("/user", userRoutes);
 app.use("/liuser", liUserRoutes);
+app.use("/admin", adminRoutes);
 
 // listener
 app.listen(port, () => {
