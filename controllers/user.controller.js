@@ -6,6 +6,56 @@ const ConnectionModel = require("../db/models/ConnectionsModel");
 const { generateLogger, getCurrentFilename } = require("../logger");
 const logger = generateLogger(getCurrentFilename(__filename));
 
+exports.getAllUsers = async (req, res) => {
+  try {
+    const { start, count, sortBy, sortOrder, search } = req.query;
+    if (!start || !count) {
+      return res.status(400).json({ message: "Missing queries" });
+    }
+    // Sorting
+    let sort = {
+      createdAt: -1,
+    };
+
+    if (sortBy && sortOrder) {
+      sort = {
+        [sortBy]: Number(sortOrder),
+      };
+    }
+
+    let find = {};
+
+    if (search) {
+      find = {
+        ...find,
+        $or: [
+          {
+            email: { $regex: `${search}`, $options: "i" },
+          },
+        ],
+      };
+    }
+
+    const totalCount = await UserModel.countDocuments(find);
+    const users = await UserModel.find(find)
+      .sort(sort)
+      .skip(Number(start))
+      .limit(Number(count))
+      .populate("accountsAccessed")
+      .populate("tags");
+
+    return res.status(200).json({
+      data: { resultCount: users.length, users },
+      meta: { totalResults: totalCount, start: start, limit: count },
+    });
+  } catch (e) {
+    logger.error(`Error in getting all linked in users : ${e}`);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try after sometime" });
+  }
+};
+
 exports.loginController = async (req, res) => {
   try {
     const { email, googleId } = req.body;

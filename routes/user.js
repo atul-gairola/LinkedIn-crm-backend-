@@ -7,7 +7,10 @@ const {
   updateTag,
   applyTag,
   removeTag,
+  getAllUsers,
 } = require("../controllers/user.controller");
+
+router.get("/", getAllUsers);
 
 router.post("/login", loginController);
 
