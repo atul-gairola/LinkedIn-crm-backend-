@@ -27,7 +27,7 @@ exports.signupController = async (req, res) => {
           user_id: savedUser.id,
           role: savedUser.role,
           firstName: savedUser.firstName,
-          lastName: savedUSer.lastName,
+          lastName: savedUser.lastName,
         },
         process.env.JWT_SECRET,
         {
@@ -112,6 +112,6 @@ exports.checkController = (req, res) => {
     res.json({ role, id: user_id, firstName, lastName });
   } catch (e) {
     console.log(e);
-    res.status(401).json({message: 'Unauthenticated'});
+    res.status(401).json({ message: "Unauthenticated" });
   }
 };
