@@ -23,7 +23,12 @@ exports.signupController = async (req, res) => {
       const savedUser = await newUser.save();
 
       const jwt = sign(
-        { user_id: savedUser.id, role: savedUser.role },
+        {
+          user_id: savedUser.id,
+          role: savedUser.role,
+          firstName: savedUser.firstName,
+          lastName: savedUSer.lastName,
+        },
         process.env.JWT_SECRET,
         {
           expiresIn: "24h",
@@ -32,8 +37,13 @@ exports.signupController = async (req, res) => {
 
       res.json({
         message: "Signed Up",
-        jwt,
-        role: savedUser.role,
+        user: {
+          jwt: jwt,
+          role: savedUser.role,
+          firstName: savedUser.firstName,
+          lastName: savedUser.lastName,
+          id: savedUser._id,
+        },
       });
     } else {
       res.statusCode = 409;
@@ -59,7 +69,12 @@ exports.loginController = async (req, res) => {
     const matched = await bcrypt.compare(password, user.password);
     if (matched) {
       const jwt = sign(
-        { user_id: user.id, role: user.role },
+        {
+          user_id: user.id,
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
         process.env.JWT_SECRET,
         {
           expiresIn: "24h",
@@ -67,8 +82,13 @@ exports.loginController = async (req, res) => {
       );
       res.json({
         message: "Admin user login success",
-        jwt: jwt,
-        role: user.role,
+        user: {
+          jwt: jwt,
+          role: user.role,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          id: user._id,
+        },
       });
     } else {
       res.statusCode = 401;
@@ -78,5 +98,20 @@ exports.loginController = async (req, res) => {
     console.log(e);
     res.statusCode = 500;
     res.json({ message: "Server side error. Please try after some time." });
+  }
+};
+
+// check controller
+exports.checkController = (req, res) => {
+  try {
+    const token = req.header("authorization").split(" ")[1];
+    var { role, user_id, firstName, lastName } = verify(
+      token,
+      process.env.JWT_SECRET
+    );
+    res.json({ role, id: user_id, firstName, lastName });
+  } catch (e) {
+    console.log(e);
+    res.status(401).json({message: 'Unauthenticated'});
   }
 };
