@@ -8,6 +8,7 @@ const connectionsRoutes = require("./routes/connections");
 const userRoutes = require("./routes/user");
 const liUserRoutes = require("./routes/liuser");
 const adminRoutes = require("./routes/admin");
+const authRoutes = require("./routes/auth");
 
 // logger
 const { generateLogger, getCurrentFilename } = require("./logger");
@@ -24,6 +25,7 @@ app.use(queue({ activeLimit: 2, queuedLimit: -1 }));
 // app.use(express.urlencoded({ limit: "50mb" }));
 
 // routes
+app.use("/auth", authRoutes);
 app.use("/connections", connectionsRoutes);
 app.use("/user", userRoutes);
 app.use("/liuser", liUserRoutes);
