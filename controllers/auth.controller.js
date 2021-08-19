@@ -49,12 +49,59 @@ exports.signupController = async (req, res) => {
     });
   } catch (e) {
     logger.error(`Signup controller - ${e}`);
-    return res
-      .status(500)
-      .json({
-        message: "Some error occured on our side. Please try after sometime.",
-      });
+    return res.status(500).json({
+      message: "Some error occured on our side. Please try after sometime.",
+    });
   }
 };
 
-exports.loginController = async (req, res) => {};
+exports.loginController = async (req, res) => {
+  const { email, password } = req.body;
+
+
+  if (!isEmail(email) || isEmpty(email)) {
+    return res.status(400).json({ message: "Please enter correct email." });
+  }
+
+  if (isEmpty(password)) {
+    return res.status(400).json({ message: "Please enter your password." });
+  }
+
+  if (password.length < 8) {
+    return res.status(400).json({ message: "Password too short." });
+  }
+
+  try {
+    const userExists = await UserModel.findOne({ email: email });
+
+    if (!userExists) {
+      return res
+        .status(400)
+        .json({ message: "Email not registered. Please signup." });
+    }
+
+
+    const passwordMatch = await bcrypt.compare(password, userExists.password);
+
+    if (!passwordMatch) {
+      return res.status(400).json({ message: "Email or password incorrect." });
+    }
+
+    const jwt = sign(
+      {
+        user_id: userExists.id,
+      },
+      process.env.JWT_SECRET
+    );
+
+    res.json({
+      jwt,
+      userId: userExists.id,
+    });
+  } catch (e) {
+    logger.error(`Login controller - ${e}`);
+    return res.status(500).json({
+      message: "Some error occured on our side. Please try after sometime.",
+    });
+  }
+};
